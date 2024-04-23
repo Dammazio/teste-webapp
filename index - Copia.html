@@ -1,154 +1,48 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="initial-scale=1, user-scalable=no, maximum-scale=1, width=device-width">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" href="css/leaflet.css">
-    <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
-    <link rel="stylesheet" href="css/L.Control.Locate.min.css">
-    <link rel="stylesheet" href="css/qgis2web.css">
-    <link rel="stylesheet" href="css/fontawesome-all.min.css">
-    <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
-    <link rel="stylesheet" href="css/leaflet-measure.css">
-    <style>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
         html, body, #map {
             width: 100%;
             height: 100%;
             padding: 0;
             margin: 0;
         }
-        .leaflet-control-custom {
-            background-color: white;
-            border: 2px solid #666;
-            border-radius: 5px;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
-            width: 34px;
-            height: 34px;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 25%;
-            text-align: center;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-    </style>
-    <title>Sunlight Workshop Demo</title>
-</head>
-<body>
-    <div id="map"></div>
-    <!-- Modal HTML -->
-    <div id="interpolationModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Deseja os resultados da interpolação?</h2>
-            <p>Utilize sua localização atual ou insira uma coordenada específica.</p>
-            <button onclick="useCurrentLocation()">Usar Localização Atual</button>
-            <input type="text" id="coordinateInput" placeholder="Digite a coordenada ou local aqui">
-            <button onclick="useCustomLocation()">Confirmar Coordenada</button>
+        </style>
+        <title>Sunlight Workshop Demo</title>
+    </head>
+    <body>
+        <div id="map">
         </div>
-    </div>
-    <script src="js/leaflet.js"></script>
-    <script src="js/L.Control.Layers.Tree.min.js"></script>
-    <script src="js/L.Control.Locate.min.js"></script>
-    <script src="js/leaflet.rotatedMarker.js"></script>
-    <script src="js/leaflet.pattern.js"></script>
-    <script src="js/leaflet-hash.js"></script>
-    <script src="js/Autolinker.min.js"></script>
-    <script src="js/rbush.min.js"></script>
-    <script src="js/labelgun.min.js"></script>
-    <script src="js/labels.js"></script>
-    <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
-    <script src="js/leaflet-measure.js"></script>
-    <script src="js/qgis2web_expressions.js"></script>
-    <script src="data/USCitiesPopulation_1.js"></script>
-    <script src="data/USCitiesSunsetTime_2.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Verifica se o mapa já foi inicializado
-            if (!window.map) {
-                window.map = L.map('map', {
-                    zoomControl: true,
-                    maxZoom: 28,
-                    minZoom: 1,
-                    maxBounds: L.latLngBounds(L.latLng(-89.98155760646617, -180), L.latLng(89.99346179538875, 180))
-                }).setView([51.505, -0.09], 13);
-        
-                // Adicionar controles personalizados e outras configurações aqui
-        
-                var customControl = L.Control.extend({
-                    options: {
-                        position: 'topleft'
-                    },
-                    onAdd: function (map) {
-                        var container = L.DomUtil.create('div', 'leaflet-control-custom');
-                        container.style.backgroundColor = 'white';
-                        container.style.width = '34px';
-                        container.style.height = '34px';
-                        container.innerHTML = '<i class="fa fa-info-circle" style="line-height:34px; text-align:center; display:block; color:black; font-size:16px;"></i>';
-                        container.style.cursor = 'pointer';
-                        container.onclick = function() {
-                            document.getElementById('interpolationModal').style.display = 'block';
-                        };
-                        return container;
-                    }
-                });
-                map.addControl(new customControl());
-            }
-        
-            // Configuração dos modais
-            var modal = document.getElementById("interpolationModal");
-            var span = document.getElementsByClassName("close")[0];
-            span.onclick = function() { modal.style.display = "none"; };
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = "none";
-                }
-            };
-        
-            window.useCurrentLocation = function() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        alert('Localização atual: ' + position.coords.latitude + ', ' + position.coords.longitude);
-                    });
-                } else {
-                    alert("Geolocalização não é suportada por este navegador.");
-                }
-            };
-        
-            window.useCustomLocation = function() {
-                var coords = document.getElementById("coordinateInput").value;
-                alert('Coordenadas inseridas: ' + coords);
-            };
-        });
-var highlightLayer;
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="data/USCitiesPopulation_1.js"></script>
+        <script src="data/USCitiesSunsetTime_2.js"></script>
+        <script>
+        var highlightLayer;
         function highlightFeature(e) {
             highlightLayer = e.target;
 
@@ -174,25 +68,6 @@ var map = L.map('map', {
     maxBounds: bounds,  // Aplica os limites para panning
     maxBoundsViscosity: 1.0  // Impede o usuário de arrastar fora dos limites em qualquer medida
         }).fitBounds([[-8.64136061011593,-127.4795257299367],[50.72764100141083,-35.44380667784349]]);
-        var customControl = L.Control.extend({
-            options: {
-                position: 'topleft'
-            },
-            onAdd: function (map) {
-                var container = L.DomUtil.create('div', 'leaflet-control-custom');
-                container.style.backgroundColor = 'white';
-                container.style.width = '34px';
-                container.style.height = '34px';
-                container.innerHTML = '<i class="fa fa-info-circle" style="line-height:34px; text-align:center; display:block; color:black; font-size:16px;"></i>';
-                container.style.cursor = 'pointer';
-                container.onclick = function() {
-                    document.getElementById('interpolationModal').style.display = 'block';
-                };
-                return container;
-            }
-        });
-        map.addControl(new customControl());
-    ;
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
